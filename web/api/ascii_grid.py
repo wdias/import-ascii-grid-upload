@@ -1,17 +1,13 @@
-from flask import Blueprint, request, jsonify
 import logging
-import sys
-import netCDF4
-import numpy as np
 import os
-from flask import Flask, request, redirect, url_for
-from flask import current_app as app
-from werkzeug.utils import secure_filename
+from datetime import datetime
+
 import netCDF4
 import numpy as np
-from datetime import datetime
-from netCDF4 import date2num, num2date
-
+from flask import Blueprint
+from flask import request
+from netCDF4 import date2num
+from werkzeug.utils import secure_filename
 
 bp = Blueprint('ascii_grid', __name__)
 logger = logging.getLogger(__name__)
