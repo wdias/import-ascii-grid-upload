@@ -10,7 +10,7 @@ try:
 except AssertionError:
     pass
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 app = Flask(__name__)
 # Register endpoints

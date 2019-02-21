@@ -1,0 +1,10 @@
+*.log
+node_modules
+.idea
+coverage
+dist
+*.code-workspace
+.vscode
+
+data
+test
