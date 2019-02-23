@@ -12,8 +12,8 @@ from werkzeug.utils import secure_filename
 bp = Blueprint('ascii_grid', __name__)
 logger = logging.getLogger(__name__)
 
+NETCDF_FILE_FORMAT = 'NETCDF4'  # 'NETCDF4_CLASSIC
 ALLOWED_EXTENSIONS = set(['txt', 'asc'])
-# DATE_TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 DATE_TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 
@@ -21,24 +21,24 @@ def create_netcdf_file_by_stream(timeseries_id, timestamp: datetime, f):
     f = f.split('\n')
     ncols = int(f.pop(0).split('\t')[1])
     nrows = int(f.pop(0).split('\t')[1])
-    xllconer = float(f.pop(0).split('\t')[1])
-    yllconer = float(f.pop(0).split('\t')[1])
+    xllcorner = float(f.pop(0).split('\t')[1])
+    yllcorner = float(f.pop(0).split('\t')[1])
     cellsize = float(f.pop(0).split('\t')[1])
     NODATA_value = int(f.pop(0).split('\t')[1])
-    logger.info(f'Meta: {ncols}, {nrows}, {xllconer}, {yllconer}, {cellsize}, {NODATA_value}')
+    logger.info(f'Meta: {ncols}, {nrows}, {xllcorner}, {yllcorner}, {cellsize}, {NODATA_value}')
 
     data = np.empty(shape=(nrows, ncols))
-    lineNo = 0
+    line_no = 0
     for line in f:
         if len(line):
-            data[lineNo, :] = [float(i) for i in line.split(' ')]
-            lineNo += 1
+            data[line_no, :] = [float(i) for i in line.split(' ')]
+            line_no += 1
 
     if os.path.isfile(f'/tmp/grid_data_{timeseries_id}.nc'):
-        ncfile = netCDF4.Dataset(f'/tmp/grid_data_{timeseries_id}.nc', mode='r+')
+        ncfile = netCDF4.Dataset(f'/tmp/grid_data_{timeseries_id}.nc', mode='r+', format=NETCDF_FILE_FORMAT)
     else:
         logger.info('Initializing NetCDF file')
-        ncfile = netCDF4.Dataset(f'/tmp/grid_data_{timeseries_id}.nc', mode='w')
+        ncfile = netCDF4.Dataset(f'/tmp/grid_data_{timeseries_id}.nc', mode='w', format=NETCDF_FILE_FORMAT)
     # logger.info(ncfile)
     if 'latitude' not in ncfile.dimensions or 'longitude' not in ncfile.dimensions or 'timestamp' not in ncfile.dimensions:
         lat_dim = ncfile.createDimension('latitude', nrows)  # Y axis
@@ -63,8 +63,8 @@ def create_netcdf_file_by_stream(timeseries_id, timestamp: datetime, f):
         val = ncfile.createVariable('value', np.float32, ('timestamp', 'latitude', 'longitude',))
         val.units = 'O.Precipitation'
         # Write lat and lon
-        lat[:] = (yllconer + cellsize * nrows) - cellsize * np.arange(nrows)
-        lon[:] = xllconer + cellsize * np.arange(ncols)
+        lat[:] = (yllcorner + cellsize * nrows) - cellsize * np.arange(nrows)
+        lon[:] = xllcorner + cellsize * np.arange(ncols)
 
     # Write data
     time = ncfile.variables['timestamp']

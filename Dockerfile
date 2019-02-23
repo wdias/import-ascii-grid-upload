@@ -54,10 +54,10 @@ RUN pip3 install \
   gunicorn \
   flask \
   webargs==4.1.2 \
-  netCDF4==1.4.2 \
   numpy==1.16.1 \
   cftime \
-  mpi4py
+  mpi4py \
+  netCDF4==1.4.2
 
 COPY . /src
 RUN cd /src && python3 setup.py develop
