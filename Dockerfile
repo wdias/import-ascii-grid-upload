@@ -57,6 +57,7 @@ RUN pip3 install \
   numpy==1.16.1 \
   cftime \
   mpi4py \
+  requests \
   netCDF4==1.4.2
 
 COPY . /src
