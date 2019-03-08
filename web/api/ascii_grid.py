@@ -4,8 +4,7 @@ from datetime import datetime
 
 import netCDF4
 import numpy as np
-from flask import Blueprint
-from flask import request
+from flask import Blueprint, request
 from netCDF4 import date2num
 from werkzeug.utils import secure_filename
 
