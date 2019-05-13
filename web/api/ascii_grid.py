@@ -4,9 +4,10 @@ from datetime import datetime
 
 import netCDF4
 import numpy as np
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from netCDF4 import date2num
 from werkzeug.utils import secure_filename
+from secrets import token_urlsafe
 
 bp = Blueprint('ascii_grid', __name__)
 logger = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ NETCDF_FILE_FORMAT = 'NETCDF4'  # 'NETCDF4_CLASSIC
 ALLOWED_EXTENSIONS = set(['txt', 'asc'])
 DATE_TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 ADAPTER_GRID = 'http://adapter-grid.default.svc.cluster.local'
+ADAPTER_STATUS = 'http://adapter-status.default.svc.cluster.local'
 
 
 def create_netcdf_file_by_stream(timeseries_id, timestamp: datetime, f):
@@ -126,7 +128,13 @@ def upload_file(timeseries_id):
             create_netcdf_file_by_stream(timeseries_id, timestamp, f.decode('utf-8'))
             # TODO: Save file size if greater than 500KB and then process
             # file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    requestId = token_urlsafe(16)
     with open(f'/tmp/grid_data_{timeseries_id}.nc', 'rb') as f:
         import requests
         requests.post(f'{ADAPTER_GRID}/timeseries/{timeseries_id}', data=f)
-    return "OK", 200
+    r = requests.post(f'{ADAPTER_STATUS}/{timeseries_id}', data={
+        'requestId': requestId,
+        'service': 'Import',
+        'type': 'Grid'
+    })
+    return jsonify(requestId=requestId), 200
