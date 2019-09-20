@@ -13,3 +13,6 @@ In the body of `form-data`;
 - The **value** should be a  [ERIS ASCII GRID](https://en.wikipedia.org/wiki/Esri_grid) file with `.asc` file extension.
 
 Files should be `utf-8` encoded.
+
+### References:
+[Forum: Converting ascii to netCDF files - CDO](https://code.mpimet.mpg.de/boards/1/topics/3631)
