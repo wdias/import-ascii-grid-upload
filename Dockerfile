@@ -54,7 +54,8 @@ RUN pip3 install \
   numpy==1.16.1 \
   cftime \
   mpi4py \
-  requests
+  requests \
+  profilehooks
 
 ENV NETCDF4_PYTHON 1.4.3.1
 RUN wget -q https://github.com/Unidata/netcdf4-python/archive/v${NETCDF4_PYTHON}.tar.gz -O netcdf4-python-${NETCDF4_PYTHON}.tar.gz && \
