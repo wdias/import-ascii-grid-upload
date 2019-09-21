@@ -15,4 +15,6 @@ In the body of `form-data`;
 Files should be `utf-8` encoded.
 
 ### References:
-[Forum: Converting ascii to netCDF files - CDO](https://code.mpimet.mpg.de/boards/1/topics/3631)
+- [Forum: Converting ascii to netCDF files - CDO](https://code.mpimet.mpg.de/boards/1/topics/3631)
+- [Flask Profiling](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xvi-debugging-testing-and-profiling)
+- [Merge NetCDF Files with xarray](https://stackoverflow.com/questions/47226429/join-merge-multiple-netcdf-files-using-xarray)
