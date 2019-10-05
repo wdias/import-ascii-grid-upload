@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import logging
 import sys
+import os
 from web import util
 from web.api import ascii_grid
 
@@ -16,7 +17,7 @@ app = Flask(__name__)
 # Register endpoints
 app.register_blueprint(ascii_grid.bp)
 
-UPLOAD_FOLDER = '/tmp'
+UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', '/data')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
