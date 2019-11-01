@@ -45,7 +45,8 @@ RUN echo "Installing NetCDF $NETCDF_C_VERSION" && \
 
 WORKDIR /src
 EXPOSE 8080
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "--timeout=10", "--workers=2", "web.app:app"]
+#CMD ["gunicorn", "-b", "0.0.0.0:8080", "--timeout=10", "--workers=4", "web.app:app"]
+CMD ["/src/bin/run.sh"]
 
 RUN pip3 install \
   gunicorn \
@@ -53,9 +54,7 @@ RUN pip3 install \
   webargs==4.1.2 \
   numpy==1.16.1 \
   cftime \
-  mpi4py \
-  requests \
-  profilehooks
+  mpi4py
 
 ENV NETCDF4_PYTHON 1.4.3.1
 RUN wget -q https://github.com/Unidata/netcdf4-python/archive/v${NETCDF4_PYTHON}.tar.gz -O netcdf4-python-${NETCDF4_PYTHON}.tar.gz && \
@@ -64,6 +63,13 @@ RUN cd netcdf4-python-${NETCDF4_PYTHON} && \
     echo "mpi_incdir=/usr/include/openmpi" >> setup.cfg && \
     sudo python setup.py build && sudo python setup.py install && \
     cd .. && rm -rf netcdf4-python-${NETCDF4_PYTHON}.tar.gz
+
+RUN pip3 install \
+  requests \
+  profilehooks \
+  rq==1.1.0 \
+  redis==3.3.8 \
+  supervisor==4.0.4
 
 COPY . /src
 RUN cd /src && python3 setup.py develop
