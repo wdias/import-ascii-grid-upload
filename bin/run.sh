@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if test "${APPNAME}" = "worker" ; then
-  echo "Start Grid Workers..."
+  echo "Start Grid Workers... ${HOSTNAME}"
   supervisord -c bin/supervisord.conf
 else
   echo "Start server..."

@@ -90,6 +90,7 @@ def close_ncfile(ncfile):
 
 
 # @profile(immediate=True)
+# @deprecated
 def get_ascii_data(f):
     f = f.split('\n')
     meta = Metadata(
@@ -105,3 +106,17 @@ def get_ascii_data(f):
     data = [np.fromstring(line, dtype=float, sep=" ") for line in f if len(line)]
     # data = np.fromstring(' '.join(f), dtype=float, sep=" ").reshape((nrows, ncols))
     return meta, data
+
+
+def get_ascii_metadata(file_name: str):
+    import linecache
+    meta = Metadata(
+        int(linecache.getline(file_name, 1).rstrip().split('\t')[1]),  # ncols
+        int(linecache.getline(file_name, 2).rstrip().split('\t')[1]),  # nrows
+        float(linecache.getline(file_name, 3).rstrip().split('\t')[1]),  # xllcorner
+        float(linecache.getline(file_name, 4).rstrip().split('\t')[1]),  # yllcorner
+        float(linecache.getline(file_name, 5).rstrip().split('\t')[1]),  # cellsize
+        int(linecache.getline(file_name, 6).rstrip().split('\t')[1])  # NODATA_value
+    )
+    logger.info(f'Meta: {meta.ncols}, {meta.nrows}, {meta.xllcorner}, {meta.yllcorner}, {meta.cellsize}, {meta.NODATA_value}')
+    return meta

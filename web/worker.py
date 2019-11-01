@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, redis, logging
+import sys, redis, logging, os
 from rq import Connection, Worker
 from web import worker_settings as conf
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 r = redis.Redis(host=conf.REDIS_HOST, port=conf.REDIS_PORT, db=conf.REDIS_DB, password=conf.REDIS_PASSWORD)
 with Connection(r):
     qs = sys.argv[1:] or ['default']
-    logger.info("Starting worker...")
+    logger.info(f"Starting worker... {os.getenv('HOSTNAME', 'default')}")
 
     w = Worker(qs)
     w.work()

@@ -8,4 +8,4 @@ REDIS_DB = 3
 REDIS_PASSWORD = 'wdias123'
 
 # Queues to listen on
-QUEUES = ['default', os.getenv('HOSTNAME')]
+QUEUES = [os.getenv('HOSTNAME', 'default')]
