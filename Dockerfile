@@ -1,7 +1,7 @@
 FROM python:3.7-slim
 
 RUN apt-get update && \
-    apt-get install -y wget curl libcurl3 sudo openssh-client && \
+    apt-get install -y wget curl sudo openssh-client && \
     apt-get -yq install gcc \
                         build-essential \
                         tar \
