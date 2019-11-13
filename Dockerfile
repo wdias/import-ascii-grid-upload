@@ -1,4 +1,4 @@
-FROM python:3.7-slim-buster
+FROM python:3.7.3-slim
 
 RUN apt-get update && \
     apt-get install -y wget curl libcurl4 sudo openssh-client && \
