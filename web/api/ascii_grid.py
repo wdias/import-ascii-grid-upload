@@ -49,14 +49,15 @@ def transcode_ascii_netcdf(timeseries_id, files, request_id):
     # Send data to adapter-grid
     import requests
     with open(f'/tmp/grid_data_{timeseries_id}.nc', 'rb') as f:
-        requests.post(f'{ADAPTER_GRID}/timeseries/{timeseries_id}', data=f)
-    r = requests.post(f'{ADAPTER_STATUS}/{timeseries_id}', data={
-        'requestId': request_id,
-        'service': 'Import',
-        'type': 'Grid'
-    })
-    r.raise_for_status()
-    return True
+        grid_res = requests.post(f'{ADAPTER_GRID}/timeseries/{timeseries_id}', data=f)
+        grid_res.raise_for_status()
+        status_res = requests.post(f'{ADAPTER_STATUS}/{timeseries_id}', data={
+            'requestId': request_id,
+            'service': 'Import',
+            'type': 'Grid'
+        })
+        status_res.raise_for_status()
+        return True
 
 
 def allowed_file(filename):
@@ -105,12 +106,4 @@ def upload_file(timeseries_id):
     request_id = token_urlsafe(16)
     transcode_ascii_netcdf.delay(timeseries_id, saved_files, request_id)
 
-    import requests
-    # with open(f'/tmp/grid_data_{timeseries_id}.nc', 'rb') as f:
-    #     requests.post(f'{ADAPTER_GRID}/timeseries/{timeseries_id}', data=f)
-    r = requests.post(f'{ADAPTER_STATUS}/{timeseries_id}', data={
-        'requestId': request_id,
-        'service': 'Import',
-        'type': 'Grid'
-    })
     return jsonify(requestId=request_id), 200
