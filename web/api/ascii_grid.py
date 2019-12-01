@@ -57,6 +57,7 @@ def transcode_ascii_netcdf(timeseries_id, files, request_id):
             'type': 'Grid'
         })
         status_res.raise_for_status()
+        w_logger.info(f"updated status requestId: {request_id} @ timeseries: {timeseries_id}")
         return True
 
 
