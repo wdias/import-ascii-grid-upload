@@ -7,7 +7,7 @@ from rq import Queue
 from rq.decorators import job
 from redis import Redis
 from web import worker_settings as conf
-from web.api import ascii_to_netcdf
+from web.api import transcode_ascii_to_netcdf
 
 import netCDF4
 import numpy as np
@@ -39,26 +39,26 @@ def transcode_ascii_netcdf(timeseries_id, files, request_id):
     for i, item in enumerate(files):
         file, timestamp = item
         if not ncfile:
-            meta = ascii_to_netcdf.get_ascii_metadata(file)
+            meta = transcode_ascii_to_netcdf.get_ascii_metadata(file)
             w_logger.info(f"{file} -> {meta}")
-            ncfile = ncfile or ascii_to_netcdf.get_netcdf_file(timeseries_id, meta)
+            ncfile = ncfile or transcode_ascii_to_netcdf.get_netcdf_file(timeseries_id, meta, request_id)
         data = np.loadtxt(file, skiprows=6)
-        ascii_to_netcdf.update_netcdf_file(ncfile, timestamp, data)
+        transcode_ascii_to_netcdf.update_netcdf_file(ncfile, timestamp, data)
     if ncfile is not None:
-        ascii_to_netcdf.close_ncfile(ncfile)
+        transcode_ascii_to_netcdf.close_ncfile(ncfile)
     # Send data to adapter-grid
     import requests
-    with open(f'/tmp/grid_data_{timeseries_id}.nc', 'rb') as f:
+    with open(f'/tmp/grid_data_{timeseries_id}_{request_id}.nc', 'rb') as f:
         grid_res = requests.post(f'{ADAPTER_GRID}/timeseries/{timeseries_id}', data=f)
         grid_res.raise_for_status()
-        status_res = requests.post(f'{ADAPTER_STATUS}/{timeseries_id}', data={
-            'requestId': request_id,
-            'service': 'Import',
-            'type': 'Grid'
-        })
-        status_res.raise_for_status()
-        w_logger.info(f"updated status requestId: {request_id} @ timeseries: {timeseries_id}")
-        return True
+    status_res = requests.post(f'{ADAPTER_STATUS}/{timeseries_id}', data={
+        'requestId': request_id,
+        'service': 'Import',
+        'type': 'Grid'
+    })
+    status_res.raise_for_status()
+    w_logger.info(f"updated status requestId: {request_id} @ timeseries: {timeseries_id}")
+    return True
 
 
 def allowed_file(filename):
@@ -87,7 +87,8 @@ def upload_file(timeseries_id):
         return 'Error' + str(err), 400
     # No need the verification, but for the safety ;)
     saved_files = []
-    logger.info(f"Processing files for timeseries_id: {timeseries_id}")
+    request_id = token_urlsafe(16)
+    logger.info(f"Processing files for timeseries_id: {timeseries_id}, request_id: {request_id}")
     for key, value in files_dict.items():
         file = request.files.get(key)
         timestamp = datetime.strptime(key, DATE_TIME_FORMAT)
@@ -104,7 +105,6 @@ def upload_file(timeseries_id):
             # TODO: Save file size if greater than 500KB and then process
             file.save(os.path.join(UPLOAD_FOLDER, f'{timeseries_id}-{filename}'))
             saved_files.append([os.path.join(UPLOAD_FOLDER, f'{timeseries_id}-{filename}'), timestamp])
-    request_id = token_urlsafe(16)
     transcode_ascii_netcdf.delay(timeseries_id, saved_files, request_id)
 
     return jsonify(requestId=request_id), 200
