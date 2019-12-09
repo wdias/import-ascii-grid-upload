@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 from secrets import token_urlsafe
 
 bp = Blueprint('ascii_grid', __name__)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('rq.worker')
 
 NETCDF_FILE_FORMAT = 'NETCDF4'  # 'NETCDF4_CLASSIC
 ALLOWED_EXTENSIONS = {'txt', 'asc'}
@@ -25,12 +25,12 @@ Metadata = namedtuple('Metadata', 'ncols nrows xllcorner yllcorner cellsize NODA
 
 
 # @profile(immediate=True)
-def get_netcdf_file(timeseries_id, meta: Metadata):
-    if os.path.isfile(f'/tmp/grid_data_{timeseries_id}.nc'):
-        ncfile = netCDF4.Dataset(f'/tmp/grid_data_{timeseries_id}.nc', mode='r+', format=NETCDF_FILE_FORMAT)
+def get_netcdf_file(timeseries_id, meta: Metadata, request_id):
+    if os.path.isfile(f'/tmp/grid_data_{timeseries_id}_{request_id}.nc'):
+        ncfile = netCDF4.Dataset(f'/tmp/grid_data_{timeseries_id}_{request_id}.nc', mode='r+', format=NETCDF_FILE_FORMAT)
     else:
         logger.info('Initializing NetCDF file')
-        ncfile = netCDF4.Dataset(f'/tmp/grid_data_{timeseries_id}.nc', mode='w', format=NETCDF_FILE_FORMAT)
+        ncfile = netCDF4.Dataset(f'/tmp/grid_data_{timeseries_id}_{request_id}.nc', mode='w', format=NETCDF_FILE_FORMAT)
     # logger.info(ncfile)
     if 'latitude' not in ncfile.dimensions or 'longitude' not in ncfile.dimensions or 'timestamp' not in ncfile.dimensions:
         lat_dim = ncfile.createDimension('latitude', meta.nrows)  # Y axis
@@ -51,7 +51,9 @@ def get_netcdf_file(timeseries_id, meta: Metadata):
         lon = ncfile.createVariable('longitude', np.float32, ('longitude',))
         lon.units = "Kandawala"
         time = ncfile.createVariable('timestamp', np.float64, ('timestamp',))
-        time.units = "days since 1970-01-01 00:00"
+        # NOTE: There's an issue with storing larger value with collective mode. In order to reduce the size, decrease the date gap
+        # time.units = "days since 1970-01-01 00:00"
+        time.units = "days since 2015-01-01 00:00"
         val = ncfile.createVariable('value', np.float32, ('timestamp', 'latitude', 'longitude',))
         val.units = 'O.Precipitation'
         # Write lat and lon
