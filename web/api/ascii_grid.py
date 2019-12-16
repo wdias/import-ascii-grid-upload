@@ -44,6 +44,9 @@ def transcode_ascii_netcdf(timeseries_id, files, request_id):
             ncfile = ncfile or transcode_ascii_to_netcdf.get_netcdf_file(timeseries_id, meta, request_id)
         data = np.loadtxt(file, skiprows=6)
         transcode_ascii_to_netcdf.update_netcdf_file(ncfile, timestamp, data)
+        # Remove ASCII Grid file after process
+        if conf.OPTIMIZE_STORAGE:
+            os.remove(file)
     if ncfile is not None:
         transcode_ascii_to_netcdf.close_ncfile(ncfile)
     # Send data to adapter-grid
@@ -51,6 +54,9 @@ def transcode_ascii_netcdf(timeseries_id, files, request_id):
     with open(f'/tmp/grid_data_{timeseries_id}_{request_id}.nc', 'rb') as f:
         grid_res = requests.post(f'{ADAPTER_GRID}/timeseries/{timeseries_id}', data=f)
         grid_res.raise_for_status()
+        # Remove netCDF file after upload to adapter-grid
+        if conf.OPTIMIZE_STORAGE:
+            os.remove(f'/tmp/grid_data_{timeseries_id}_{request_id}.nc')
     status_res = requests.post(f'{ADAPTER_STATUS}/{timeseries_id}', data={
         'requestId': request_id,
         'service': 'Import',
